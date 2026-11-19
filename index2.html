@@ -1,0 +1,1452 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Validador DataCrédito v2.2</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f4f6f9;
+            color: #2c3e50;
+            padding: 20px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1500px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            padding: 24px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        header h1 {
+            font-size: 22px;
+            margin-bottom: 4px;
+        }
+
+        header p {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .panel {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        .upload-zone {
+            display: block;
+            border: 2px dashed #bdc3c7;
+            border-radius: 8px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #fafbfc;
+        }
+
+        .upload-zone:hover,
+        .upload-zone.dragover {
+            border-color: #2a5298;
+            background: #f0f4ff;
+        }
+
+        .upload-zone input {
+            display: none;
+        }
+
+        .upload-zone p {
+            color: #7f8c8d;
+            margin-top: 8px;
+            font-size: 14px;
+        }
+
+        .upload-zone .icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .progress-container {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 28px;
+            background: #ecf0f1;
+            border-radius: 14px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #27ae60, #2ecc71);
+            width: 0%;
+            transition: width 0.1s;
+        }
+
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 12px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .stat {
+            padding: 14px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            opacity: 0.8;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 4px;
+        }
+
+        .stat.total {
+            background: #eaf2ff;
+            color: #2a5298;
+        }
+
+        .stat.ok {
+            background: #e8f8ef;
+            color: #1e8449;
+        }
+
+        .stat.error {
+            background: #fdecea;
+            color: #c0392b;
+        }
+
+        .stat.warn {
+            background: #fef5e7;
+            color: #d68910;
+        }
+
+        .stat.info {
+            background: #eaf4fc;
+            color: #2874a6;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+        }
+
+        button {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #2a5298;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1e3c72;
+        }
+
+        .btn-secondary {
+            background: #ecf0f1;
+            color: #2c3e50;
+        }
+
+        .btn-secondary:hover {
+            background: #d5dbdb;
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #1e8449;
+        }
+
+        .btn-active {
+            background: #2a5298;
+            color: white;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .filters {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+            align-items: center;
+        }
+
+        .filter-btn {
+            padding: 6px 14px;
+            border: 1px solid #bdc3c7;
+            background: white;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .filter-btn.active {
+            background: #2a5298;
+            color: white;
+            border-color: #2a5298;
+        }
+
+        .view-toggle {
+            margin-left: auto;
+            padding: 6px 14px;
+            border: 1px solid #2a5298;
+            background: white;
+            color: #2a5298;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .view-toggle.active {
+            background: #2a5298;
+            color: white;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            max-height: 600px;
+            overflow-y: auto;
+            border: 1px solid #e5e8eb;
+            border-radius: 6px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        thead {
+            background: #2a5298;
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        th,
+        td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid #e5e8eb;
+            vertical-align: top;
+        }
+
+        th {
+            font-weight: 600;
+        }
+
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .dictamen {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .dictamen.error-bloqueante {
+            background: #fdecea;
+            color: #c0392b;
+        }
+
+        .dictamen.observacion {
+            background: #fef5e7;
+            color: #d68910;
+        }
+
+        .dictamen.inconsistencia {
+            background: #eaf4fc;
+            color: #2874a6;
+        }
+
+        .dictamen.corregido {
+            background: #e8f8ef;
+            color: #1e8449;
+        }
+
+        .file-info {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-top: 12px;
+        }
+
+        .file-info strong {
+            color: #2a5298;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #2c3e50;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #2a5298;
+        }
+
+        .instructions {
+            background: #fff9e6;
+            border-left: 4px solid #f39c12;
+            padding: 14px;
+            border-radius: 4px;
+            margin-top: 16px;
+            font-size: 13px;
+        }
+
+        .instructions h4 {
+            margin-bottom: 8px;
+            color: #d68910;
+        }
+
+        .instructions ol {
+            margin-left: 20px;
+        }
+
+        .instructions li {
+            margin-bottom: 6px;
+        }
+
+        .campo-cell {
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        .pos-cell {
+            font-family: monospace;
+            font-size: 11px;
+            color: #2a5298;
+            background: #f0f4ff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .estado-cell {
+            font-size: 12px;
+            color: #555;
+        }
+
+        .req-cell {
+            font-size: 12px;
+        }
+
+        .count-badge {
+            background: #2a5298;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+
+        .error-box {
+            background: #fdecea;
+            border: 1px solid #c0392b;
+            color: #c0392b;
+            padding: 14px;
+            border-radius: 6px;
+            margin-top: 12px;
+            font-size: 13px;
+        }
+
+        .error-box strong {
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .error-box pre {
+            background: white;
+            padding: 8px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+            margin-top: 8px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Validador de Archivos Planos DataCrédito</h1>
+            <p>Manual de Entrega de Información Cartera LHD v2.2 (2023-06-03) · Procesamiento local en el navegador</p>
+        </header>
+
+        <div class="panel">
+            <div class="section-title">1. Cargar archivo plano</div>
+            <label class="upload-zone" id="uploadZone">
+                <input type="file" id="fileInput" accept=".txt">
+                <div class="icon">📄</div>
+                <p><strong>Haz clic o arrastra aquí tu archivo .txt</strong></p>
+                <p>Formato esperado: SSSSSS.AAAAMMDD.T (ej: 284941.20260930.T)</p>
+            </label>
+            <div class="file-info hidden" id="fileInfo"></div>
+            <div class="progress-container" id="progressContainer">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                    <div class="progress-text" id="progressText">0%</div>
+                </div>
+            </div>
+            <div class="error-box hidden" id="errorBox">
+                <strong>⚠ Error durante el procesamiento</strong>
+                <div id="errorMsg"></div>
+            </div>
+        </div>
+
+        <div class="panel hidden" id="resultsPanel">
+            <div class="section-title">2. Resumen de la auditoría</div>
+            <div class="summary" id="summary"></div>
+            <div class="actions">
+                <button class="btn-success" id="btnDownloadMd">📥 Descargar informe (.md)</button>
+                <button class="btn-primary" id="btnDownloadCsv">📥 Descargar CSV</button>
+                <button class="btn-secondary" id="btnDownloadHtml">📥 Descargar HTML</button>
+                <button class="btn-secondary" id="btnReset">🔄 Validar otro archivo</button>
+            </div>
+        </div>
+
+        <div class="panel hidden" id="tablePanel">
+            <div class="section-title">3. Detalle de hallazgos</div>
+            <div class="filters" id="filters">
+                <button class="filter-btn active" data-filter="all">Todos</button>
+                <button class="filter-btn" data-filter="ERROR BLOQUEANTE">Errores bloqueantes</button>
+                <button class="filter-btn" data-filter="OBSERVACIÓN">Observaciones</button>
+                <button class="filter-btn" data-filter="INCONSISTENCIA">Inconsistencias</button>
+                <button class="filter-btn" data-filter="CORREGIDO / OK">OK / Corregidos</button>
+                <button class="view-toggle" id="btnGroupView">📊 Vista agrupada</button>
+            </div>
+            <div class="table-wrapper">
+                <table id="resultsTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 20%;">Aspecto / Campo</th>
+                            <th style="width: 8%;">Posición</th>
+                            <th style="width: 28%;">Estado en el archivo</th>
+                            <th style="width: 24%;">Requerimiento Manual v2.2</th>
+                            <th style="width: 20%;">Dictamen</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsBody"></tbody>
+                </table>
+            </div>
+            <div class="instructions" id="instructions"></div>
+        </div>
+    </div>
+
+    <script>
+        /* ============================================================
+           CATÁLOGOS
+           ============================================================ */
+        const CATALOGOS = {
+            tipoId: { '1': 'Cédula de ciudadanía', '2': 'NIT', '3': 'Persona jurídica del extranjero', '4': 'Cédula de extranjería', '5': 'Pasaporte', '6': 'PPT / Carné Diplomático', '7': 'Tarjeta de identidad', '8': 'DNI extranjero' },
+            situacionTitular: { '0': 'Normal', '1': 'Concordato', '2': 'Liquidación forzosa', '3': 'Liquidación voluntaria', '4': 'Proceso de reorganización', '5': 'Ley 2445 / Ley 550', '6': 'Ley 1116' },
+            responsableCalidad: { '00': 'Principal', '01': 'Codeudor', '04': 'Avalista', '05': 'Deudor solidario', '06': 'Coarrendatario', '07': 'Otro', '08': 'Fiador', '96': 'Cotitular', '97': 'Comunal' },
+            tipoObligacion: { '1': 'Comercial', '2': 'Consumo', '3': 'Hipotecario', '4': 'Otro', '5': 'Microcrédito', '6': 'Libranza' },
+            formaPago: { '0': 'No pagada-Vigente', '1': 'Pago voluntario', '2': 'Proceso ejecutivo', '3': 'Mandamiento de pago', '4': 'Reestructuración/Refinanciación', '5': 'Bien entregado en dación', '6': 'Dada en cesión', '7': 'Donación', '8': 'Cuenta Prescrita', '9': 'Cuenta Insoluta' },
+            periodicidad: { '1': 'Mensual', '2': 'Bimestral', '3': 'Trimestral', '4': 'Semestral', '5': 'Anual', '6': 'Al vencimiento', '9': 'Otro' },
+            novedad: { '01': 'Al día', '02': 'Cancelada voluntariamente', '03': 'Cancelada por mal manejo', '04': 'Cancelada', '05': 'Pago total', '06': 'Mora 30 días', '07': 'Mora 60 días', '08': 'Mora 90 días', '09': 'Mora 120+ días', '12': 'Dudoso recaudo', '13': 'Cartera castigada', '18': 'No entregada', '19': 'Robada', '20': 'Extraviada', '21': 'No renovada' },
+            novedadCRT: { '01': 'Al día', '02': 'Cancelada voluntariamente', '03': 'Cancelada por mal manejo', '04': 'Cancelada', '06': 'Mora 30 días', '07': 'Mora 60 días', '08': 'Mora 90 días', '09': 'Mora 120+ días', '12': 'Dudoso recaudo', '13': 'Cartera castigada', '18': 'No entregada', '19': 'Robada', '20': 'Extraviada', '21': 'No renovada' },
+            novedadParcialCRT: { '01': 'Al día', '05': 'Pago total' },
+            situacionCartera: { '0': 'Normal', '1': 'Reestructurada', '2': 'Refinanciada', '3': 'Transferida de otro producto', '4': 'Comprada', '5': 'Normal-Restructurada', '6': 'Normal-Refinanciada' },
+            estadoCuenta: { '01': 'Al día', '02': 'En mora', '03': 'Pago total', '04': 'Pago judicial', '05': 'Dudoso recaudo', '06': 'Castigada', '07': 'Dación en pago', '08': 'Cancelada voluntariamente', '09': 'Cancelada por mal manejo', '10': 'Cuenta Prescrita', '11': 'Cancelada por la entidad', '12': 'Cancelada por reestructuración', '13': 'Cancelada por venta', '14': 'Cuenta Insoluta', '15': 'Cancelada por Siniestros', '17': 'Cancelada por subrogación' },
+            estadoPlastico: { '1': 'Entregado', '2': 'Renovado', '3': 'No Renovado', '4': 'Reexpedido', '5': 'Robado', '6': 'Extraviado', '7': 'No Entregado', '8': 'Devuelto' },
+            adjetivo: { '0': 'No hay adjetivo', '1': 'Fallecido', '2': 'Deudor no localizado', '3': 'Cuenta en cobrador', '4': 'Servicio desconectado', '5': 'Incapacidad total', '6': 'Cobro pre jurídico', '7': 'Cobro jurídico' },
+            detalleGarantia: { '0': 'No reportado', '1': 'Admisible', '2': 'Otras', 'A': 'Idónea', 'B': 'Bienes raíces', 'C': 'Otras prendas', 'D': 'Pignoración de rentas', 'E': 'Garantía Soberana', 'F': 'Contratos de fiducia', 'G': 'Fondo Nacional de Garantías', 'H': 'Cartas de crédito', 'I': 'FAG', 'J': 'Personal', 'K': 'Leasing diferente a inmobiliario', 'L': 'Leasing inmobiliario', 'M': 'Prenda sobre títulos', 'N': 'Depósitos en garantía', 'O': 'Seguros de crédito', 'P': 'Otras garantías idóneas', 'Q': 'No idónea' },
+            claseTarjeta: { '0': 'No aplica', '1': 'Clásica', '2': 'Gold', '3': 'Platinum', '4': 'Otra', '5': 'Black' },
+            franquicia: { '0': 'No aplica', '1': 'American', '2': 'Visa', '3': 'Master Card', '4': 'Diners', '5': 'Privada' },
+            tipoMoneda: { '1': 'Legal', '2': 'Extranjera' },
+            tipoEntrega: { 'T': 'Total', 'F': 'Fragmento', 'E': 'Pagos parciales', 'P': 'Reporte parcial CRT', 'A': 'Aperturas diarias' }
+        };
+
+        const NOVEDADES_CIERRE = ['02', '03', '04', '05', '18', '19', '20', '21'];
+
+        /* ============================================================
+           CAMPOS DEL DETALLE
+           ============================================================ */
+        const CAMPOS_DETALLE = [
+            { id: '2.1', nombre: 'Tipo Identificación', ini: 0, fin: 1, long: 1, tipo: 'NUM', catalogo: 'tipoId' },
+            { id: '2.2', nombre: 'Número Identificación', ini: 1, fin: 12, long: 11, tipo: 'NUM' },
+            { id: '2.3', nombre: 'Número Cuenta/Obligación', ini: 12, fin: 30, long: 18, tipo: 'ALF' },
+            { id: '2.4', nombre: 'Nombre Completo', ini: 30, fin: 75, long: 45, tipo: 'ALF' },
+            { id: '2.5', nombre: 'Situación Titular', ini: 75, fin: 76, long: 1, tipo: 'NUM', catalogo: 'situacionTitular' },
+            { id: '2.6', nombre: 'Fecha Apertura', ini: 76, fin: 84, long: 8, tipo: 'NUM', formato: 'FECHA' },
+            { id: '2.7', nombre: 'Fecha Vencimiento', ini: 84, fin: 92, long: 8, tipo: 'NUM', formato: 'FECHA' },
+            { id: '2.8', nombre: 'Responsable Calidad Deudor', ini: 92, fin: 94, long: 2, tipo: 'NUM', catalogo: 'responsableCalidad' },
+            { id: '2.9', nombre: 'Tipo Obligación', ini: 94, fin: 95, long: 1, tipo: 'NUM', catalogo: 'tipoObligacion' },
+            { id: '2.10', nombre: 'Subsidio Hipotecario', ini: 95, fin: 96, long: 1, tipo: 'NUM', dominio: [0, 1] },
+            { id: '2.11', nombre: 'Fecha Subsidio', ini: 96, fin: 104, long: 8, tipo: 'NUM', formato: 'FECHA' },
+            { id: '2.12', nombre: 'Término Contrato', ini: 104, fin: 105, long: 1, tipo: 'NUM', dominio: [1, 2] },
+            { id: '2.13', nombre: 'Forma de Pago', ini: 105, fin: 106, long: 1, tipo: 'NUM', catalogo: 'formaPago' },
+            { id: '2.14', nombre: 'Periodicidad Pago', ini: 106, fin: 107, long: 1, tipo: 'NUM', catalogo: 'periodicidad' },
+            { id: '2.15', nombre: 'Novedad', ini: 107, fin: 109, long: 2, tipo: 'NUM', catalogo: 'novedad' },
+            { id: '2.16', nombre: 'Situación Cartera', ini: 109, fin: 110, long: 1, tipo: 'NUM', catalogo: 'situacionCartera' },
+            { id: '2.17', nombre: 'Fecha Situación Cartera', ini: 110, fin: 118, long: 8, tipo: 'NUM', formato: 'FECHA' },
+            { id: '2.18', nombre: 'Estado de la Cuenta', ini: 118, fin: 120, long: 2, tipo: 'NUM', catalogo: 'estadoCuenta' },
+            { id: '2.19', nombre: 'Fecha Estado Cuenta', ini: 120, fin: 128, long: 8, tipo: 'NUM', formato: 'FECHA' },
+            { id: '2.20', nombre: 'Estado del Plástico', ini: 128, fin: 129, long: 1, tipo: 'NUM', catalogo: 'estadoPlastico' },
+            { id: '2.21', nombre: 'Fecha Estado Plástico', ini: 129, fin: 137, long: 8, tipo: 'NUM', formato: 'FECHA' },
+            { id: '2.22', nombre: 'Adjetivo', ini: 137, fin: 138, long: 1, tipo: 'NUM', catalogo: 'adjetivo' },
+            { id: '2.23', nombre: 'Fecha Adjetivo', ini: 138, fin: 146, long: 8, tipo: 'NUM', formato: 'FECHA' },
+            { id: '2.24', nombre: 'Clase Tarjeta', ini: 146, fin: 147, long: 1, tipo: 'NUM', catalogo: 'claseTarjeta' },
+            { id: '2.25', nombre: 'Franquicia', ini: 147, fin: 148, long: 1, tipo: 'NUM', catalogo: 'franquicia' },
+            { id: '2.26', nombre: 'Nombre Marca Privada', ini: 148, fin: 178, long: 30, tipo: 'ALF' },
+            { id: '2.27', nombre: 'Tipo de Moneda', ini: 178, fin: 179, long: 1, tipo: 'NUM', catalogo: 'tipoMoneda' },
+            { id: '2.28', nombre: 'Tipo de Garantía', ini: 179, fin: 180, long: 1, tipo: 'NUM', catalogo: 'detalleGarantia' },
+            { id: '2.29', nombre: 'Calificación', ini: 180, fin: 182, long: 2, tipo: 'ALF' },
+            { id: '2.30', nombre: 'Probabilidad Incumplimiento', ini: 182, fin: 185, long: 3, tipo: 'NUM' },
+            { id: '2.31', nombre: 'Edad/Días Incumplimiento', ini: 185, fin: 188, long: 3, tipo: 'NUM' },
+            { id: '2.32', nombre: 'Valor Inicial/Cupo Aprobado', ini: 188, fin: 199, long: 11, tipo: 'NUM' },
+            { id: '2.33', nombre: 'Saldo Deuda/Cupo Utilizado', ini: 199, fin: 210, long: 11, tipo: 'NUM' },
+            { id: '2.34', nombre: 'Valor Disponible', ini: 210, fin: 221, long: 11, tipo: 'NUM' },
+            { id: '2.35', nombre: 'Valor Cuota Mensual', ini: 221, fin: 232, long: 11, tipo: 'NUM' },
+            { id: '2.36', nombre: 'Valor Saldo en Mora', ini: 232, fin: 243, long: 11, tipo: 'NUM' },
+            { id: '2.37', nombre: 'Total Cuotas', ini: 243, fin: 246, long: 3, tipo: 'NUM' },
+            { id: '2.38', nombre: 'Cuotas Canceladas', ini: 246, fin: 249, long: 3, tipo: 'NUM' },
+            { id: '2.39', nombre: 'Cuotas en Mora', ini: 249, fin: 252, long: 3, tipo: 'NUM' },
+            { id: '2.40', nombre: 'Cláusula Permanencia', ini: 252, fin: 255, long: 3, tipo: 'NUM' },
+            { id: '2.41', nombre: 'Fecha Cláusula Permanencia', ini: 255, fin: 263, long: 8, tipo: 'NUM', formato: 'FECHA' },
+            { id: '2.42', nombre: 'Fecha Límite Pago', ini: 263, fin: 271, long: 8, tipo: 'NUM', formato: 'FECHA' },
+            { id: '2.43', nombre: 'Fecha de Pago', ini: 271, fin: 279, long: 8, tipo: 'NUM', formato: 'FECHA' },
+            { id: '2.44', nombre: 'Oficina Radicación', ini: 279, fin: 309, long: 30, tipo: 'ALF' },
+            { id: '2.45', nombre: 'Ciudad Radicación', ini: 309, fin: 329, long: 20, tipo: 'ALF' },
+            { id: '2.46', nombre: 'Código DANE Ciudad Rad.', ini: 329, fin: 337, long: 8, tipo: 'NUM' },
+            { id: '2.47', nombre: 'Ciudad Residencia', ini: 337, fin: 357, long: 20, tipo: 'ALF' },
+            { id: '2.48', nombre: 'Código DANE Ciudad Res.', ini: 357, fin: 365, long: 8, tipo: 'NUM' },
+            { id: '2.49', nombre: 'Departamento Residencia', ini: 365, fin: 385, long: 20, tipo: 'ALF' },
+            { id: '2.50', nombre: 'Dirección Residencia', ini: 385, fin: 445, long: 60, tipo: 'ALF' },
+            { id: '2.51', nombre: 'Teléfono Residencia', ini: 445, fin: 457, long: 12, tipo: 'NUM' },
+            { id: '2.52', nombre: 'Ciudad Laboral', ini: 457, fin: 477, long: 20, tipo: 'ALF' },
+            { id: '2.53', nombre: 'Código DANE Ciudad Lab.', ini: 477, fin: 485, long: 8, tipo: 'NUM' },
+            { id: '2.54', nombre: 'Departamento Laboral', ini: 485, fin: 505, long: 20, tipo: 'ALF' },
+            { id: '2.55', nombre: 'Dirección Laboral', ini: 505, fin: 565, long: 60, tipo: 'ALF' },
+            { id: '2.56', nombre: 'Teléfono Laboral', ini: 565, fin: 577, long: 12, tipo: 'NUM' },
+            { id: '2.57', nombre: 'Ciudad Correspondencia', ini: 577, fin: 597, long: 20, tipo: 'ALF' },
+            { id: '2.58', nombre: 'Código DANE Ciudad Corr.', ini: 597, fin: 605, long: 8, tipo: 'NUM' },
+            { id: '2.59', nombre: 'Departamento Correspondencia', ini: 605, fin: 625, long: 20, tipo: 'ALF' },
+            { id: '2.60', nombre: 'Dirección Correspondencia', ini: 625, fin: 685, long: 60, tipo: 'ALF' },
+            { id: '2.61', nombre: 'Correo Electrónico', ini: 685, fin: 745, long: 60, tipo: 'ALF' },
+            { id: '2.62', nombre: 'Celular', ini: 745, fin: 757, long: 12, tipo: 'NUM' },
+            { id: '2.63', nombre: 'Suscriptor Destino', ini: 757, fin: 763, long: 6, tipo: 'NUM' },
+            { id: '2.64', nombre: 'Número de la Tarjeta', ini: 763, fin: 781, long: 18, tipo: 'NUM' },
+            { id: '2.65', nombre: 'Detalle Garantía', ini: 781, fin: 782, long: 1, tipo: 'ALF', catalogo: 'detalleGarantia' },
+            { id: '2.66', nombre: 'Uso Interno Experian', ini: 782, fin: 783, long: 1, tipo: 'NUM', dominio: [0] },
+            { id: '2.67', nombre: 'Fecha Expedición Documento', ini: 783, fin: 791, long: 8, tipo: 'NUM', formato: 'FECHA' },
+            { id: '2.68', nombre: 'Lugar Expedición Documento', ini: 791, fin: 799, long: 8, tipo: 'NUM' },
+            { id: '2.69', nombre: 'Espacio en Blanco', ini: 799, fin: 800, long: 1, tipo: 'ALF' }
+        ];
+
+        /* Mapa de posiciones para header y trailer */
+        const POS_HEADER = {
+            '1.0 Longitud Header': '1-800',
+            '1.1 Indicador Inicial': '1-18',
+            '1.2 Código Suscriptor': '19-24',
+            '1.3 Tipo Cuenta': '25-26',
+            '1.4 Fecha Corte': '27-34',
+            '1.5 Ampliación Milenio': '35-35',
+            '1.6 Indicador Valores en Miles': '36-36',
+            '1.7 Tipo de Entrega': '37-37',
+            '1.8 / 1.9 Fechas Inicio/Fin Reporte': '38-53',
+            '1.8 Fecha Inicio Reporte': '38-45',
+            '1.9 Fecha Fin Reporte': '46-53',
+            '1.10 Indicador Partir': '54-54',
+            '1.11 Filler Header': '55-800',
+            'Nombre del archivo': 'N/A'
+        };
+        const POS_TRAILER = {
+            '3.0 Longitud Trailer': '1-800',
+            '3.1 Indicador Final': '1-18',
+            '3.2 Fecha Proceso': '19-26',
+            '3.3 Número de Registros': '27-34',
+            '3.3 Número de Registros (Trailer)': '27-34',
+            '3.4 Sumatoria Novedades': '35-42',
+            '3.5 Filler Trailer': '43-800'
+        };
+
+        /* ============================================================
+           ESTADO GLOBAL
+           ============================================================ */
+        let resultadosGlobales = [];
+        let metadataArchivo = {};
+        let vistaAgrupada = false;
+        let filtroActual = 'all';
+
+        /* ============================================================
+           FUNCIONES AUXILIARES
+           ============================================================ */
+        function extraer(linea, ini, fin) {
+            if (!linea || linea.length <= ini) return '';
+            return linea.substring(ini, Math.min(fin, linea.length));
+        }
+        function esFechaValida(s) {
+            if (!/^\d{8}$/.test(s)) return false;
+            const a = parseInt(s.substring(0, 4), 10);
+            const m = parseInt(s.substring(4, 6), 10);
+            const d = parseInt(s.substring(6, 8), 10);
+            if (a < 1900 || a > 2100) return false;
+            if (m < 1 || m > 12) return false;
+            if (d < 1 || d > 31) return false;
+            return true;
+        }
+        function esSoloEspacios(s) { return s.trim() === ''; }
+        function esSoloCeros(s) { return /^0+$/.test(s); }
+        function esNumericoPuro(s) { return /^\d+$/.test(s); }
+        function tieneCaracteresEspeciales(s) { return /[*\-<>#\$&",;:]/.test(s); }
+
+        /* Helper para obtener posición de un campo del detalle */
+        function posCampo(id) {
+            const c = CAMPOS_DETALLE.find(x => x.id === id);
+            return c ? `${c.ini}-${c.fin}` : '';
+        }
+
+        /* Helper para obtener posición según el nombre del campo */
+        function obtenerPosicion(campo) {
+            /* Header */
+            if (POS_HEADER[campo]) return POS_HEADER[campo];
+            /* Trailer */
+            if (POS_TRAILER[campo]) return POS_TRAILER[campo];
+            /* Detalle: extraer el id del campo (ej: "2.33 Saldo Deuda (Línea 5)" → "2.33") */
+            const match = campo.match(/^(\d+\.\d+)/);
+            if (match) {
+                const id = match[1];
+                const c = CAMPOS_DETALLE.find(x => x.id === id);
+                if (c) return `${c.ini}-${c.fin}`;
+            }
+            /* Casos especiales de negocio */
+            if (campo.includes('2.37/2.38')) return `${posCampo('2.37')}/${posCampo('2.38')}`;
+            if (campo.includes('2.37/2.38/2.39')) return `${posCampo('2.37')}/${posCampo('2.38')}/${posCampo('2.39')}`;
+            if (campo.includes('2.9/2.10')) return `${posCampo('2.9')}/${posCampo('2.10')}`;
+            if (campo.includes('2.10/2.11')) return `${posCampo('2.10')}/${posCampo('2.11')}`;
+            if (campo.includes('2.22/2.23')) return `${posCampo('2.22')}/${posCampo('2.23')}`;
+            if (campo.includes('2.28/2.65')) return `${posCampo('2.28')}/${posCampo('2.65')}`;
+            if (campo.includes('2.16/2.17')) return `${posCampo('2.16')}/${posCampo('2.17')}`;
+            if (campo.includes('1.7 / Tipo de Cuenta')) return `${POS_HEADER['1.7 Tipo de Entrega']}/${POS_HEADER['1.3 Tipo Cuenta']}`;
+            if (campo.includes('Tipo Entrega')) return POS_HEADER['1.7 Tipo de Entrega'];
+            return '—';
+        }
+
+        /* ============================================================
+           VALIDACIÓN HEADER
+           ============================================================ */
+        function validarHeader(linea, tipoEntregaEsperado) {
+            const hallazgos = [];
+            if (!linea || linea.length !== 800) {
+                hallazgos.push({ campo: '1.0 Longitud Header', posicion: '1-800', estado: `Mide ${linea ? linea.length : 0} caracteres`, requerimiento: 'Exactamente 800 caracteres', dictamen: 'ERROR BLOQUEANTE' });
+                return { hallazgos, codSuscriptor: '', tipoEntrega: 'T', fechaCorte: '', tipoCuenta: '' };
+            }
+            const indicador = extraer(linea, 0, 18);
+            if (indicador !== 'HHHHHHHHHHHHHHHHHH') {
+                hallazgos.push({ campo: '1.1 Indicador Inicial', posicion: '1-18', estado: `"${indicador}"`, requerimiento: '18 caracteres H: HHHHHHHHHHHHHHHHHH', dictamen: 'ERROR BLOQUEANTE' });
+            }
+            const codSuscriptor = extraer(linea, 18, 24);
+            if (!esNumericoPuro(codSuscriptor)) {
+                hallazgos.push({ campo: '1.2 Código Suscriptor', posicion: '19-24', estado: `"${codSuscriptor}"`, requerimiento: '6 dígitos numéricos', dictamen: 'ERROR BLOQUEANTE' });
+            }
+            const tipoCuenta = extraer(linea, 24, 26);
+            if (!esNumericoPuro(tipoCuenta)) {
+                hallazgos.push({ campo: '1.3 Tipo Cuenta', posicion: '25-26', estado: `"${tipoCuenta}"`, requerimiento: '2 dígitos numéricos', dictamen: 'ERROR BLOQUEANTE' });
+            }
+            const fechaCorte = extraer(linea, 26, 34);
+            if (!esFechaValida(fechaCorte)) {
+                hallazgos.push({ campo: '1.4 Fecha Corte', posicion: '27-34', estado: `"${fechaCorte}"`, requerimiento: 'Formato AAAAMMDD válido', dictamen: 'ERROR BLOQUEANTE' });
+            }
+            const ampMil = extraer(linea, 34, 35);
+            if (ampMil !== 'M') {
+                hallazgos.push({ campo: '1.5 Ampliación Milenio', posicion: '35-35', estado: `"${ampMil}"`, requerimiento: 'Letra M', dictamen: 'ERROR BLOQUEANTE' });
+            }
+            const indMiles = extraer(linea, 35, 36);
+            if (!['M', ' ', '0'].includes(indMiles)) {
+                hallazgos.push({ campo: '1.6 Indicador Valores en Miles', posicion: '36-36', estado: `"${indMiles}"`, requerimiento: 'M, espacio o 0', dictamen: 'ERROR BLOQUEANTE' });
+            }
+            const tipoEntrega = extraer(linea, 36, 37);
+            if (!['T', 'F', 'E', 'P', 'A'].includes(tipoEntrega)) {
+                hallazgos.push({ campo: '1.7 Tipo de Entrega', posicion: '37-37', estado: `"${tipoEntrega}"`, requerimiento: 'T, F, E, P o A', dictamen: 'ERROR BLOQUEANTE' });
+            } else if (tipoEntregaEsperado && tipoEntrega !== tipoEntregaEsperado) {
+                hallazgos.push({ campo: '1.7 Tipo de Entrega', posicion: '37-37', estado: `"${tipoEntrega}" en header, pero el nombre indica "${tipoEntregaEsperado}"`, requerimiento: 'El tipo de entrega del header debe coincidir con el del nombre del archivo', dictamen: 'ERROR BLOQUEANTE' });
+            }
+            const fechaIni = extraer(linea, 37, 45);
+            const fechaFin = extraer(linea, 45, 53);
+            if (tipoEntrega === 'T') {
+                if (!esSoloCeros(fechaIni) || !esSoloCeros(fechaFin)) {
+                    hallazgos.push({ campo: '1.8 / 1.9 Fechas Inicio/Fin Reporte', posicion: '38-53', estado: `Inicio: "${fechaIni}" Fin: "${fechaFin}"`, requerimiento: 'Para tipo T deben venir en ceros (00000000)', dictamen: 'ERROR BLOQUEANTE' });
+                }
+            } else {
+                if (!esFechaValida(fechaIni)) {
+                    hallazgos.push({ campo: '1.8 Fecha Inicio Reporte', posicion: '38-45', estado: `"${fechaIni}"`, requerimiento: 'Formato AAAAMMDD válido (obligatorio para tipo diferente de T)', dictamen: 'ERROR BLOQUEANTE' });
+                }
+                if (!esFechaValida(fechaFin)) {
+                    hallazgos.push({ campo: '1.9 Fecha Fin Reporte', posicion: '46-53', estado: `"${fechaFin}"`, requerimiento: 'Formato AAAAMMDD válido (obligatorio para tipo diferente de T)', dictamen: 'ERROR BLOQUEANTE' });
+                }
+            }
+            const indPartir = extraer(linea, 53, 54);
+            if (!['S', 'N', ' '].includes(indPartir)) {
+                hallazgos.push({ campo: '1.10 Indicador Partir', posicion: '54-54', estado: `"${indPartir}"`, requerimiento: 'S o N', dictamen: 'ERROR BLOQUEANTE' });
+            }
+            const filler = extraer(linea, 54, 800);
+            if (!esSoloCeros(filler)) {
+                hallazgos.push({ campo: '1.11 Filler Header', posicion: '55-800', estado: `Contiene ${filler.length - filler.replace(/[^0]/g, '').length} caracteres distintos de cero`, requerimiento: '746 posiciones en ceros', dictamen: 'OBSERVACIÓN' });
+            }
+            return { hallazgos, codSuscriptor, tipoEntrega, fechaCorte, tipoCuenta };
+        }
+
+        /* ============================================================
+           VALIDACIÓN TRAILER
+           ============================================================ */
+        function validarTrailer(linea, totalLineasFisicas, sumatoriaReal) {
+            const hallazgos = [];
+            if (!linea || linea.length !== 800) {
+                hallazgos.push({ campo: '3.0 Longitud Trailer', posicion: '1-800', estado: `Mide ${linea ? linea.length : 0} caracteres`, requerimiento: 'Exactamente 800 caracteres', dictamen: 'ERROR BLOQUEANTE' });
+                return hallazgos;
+            }
+            const indicador = extraer(linea, 0, 18);
+            if (indicador !== 'ZZZZZZZZZZZZZZZZZZ') {
+                hallazgos.push({ campo: '3.1 Indicador Final', posicion: '1-18', estado: `"${indicador}"`, requerimiento: '18 caracteres Z: ZZZZZZZZZZZZZZZZZZ', dictamen: 'ERROR BLOQUEANTE' });
+            }
+            const fechaProc = extraer(linea, 18, 26);
+            if (!esFechaValida(fechaProc)) {
+                hallazgos.push({ campo: '3.2 Fecha Proceso', posicion: '19-26', estado: `"${fechaProc}"`, requerimiento: 'Formato AAAAMMDD válido', dictamen: 'ERROR BLOQUEANTE' });
+            }
+            const numReg = extraer(linea, 26, 34);
+            if (!esNumericoPuro(numReg)) {
+                hallazgos.push({ campo: '3.3 Número de Registros', posicion: '27-34', estado: `"${numReg}"`, requerimiento: '8 dígitos numéricos', dictamen: 'ERROR BLOQUEANTE' });
+            } else {
+                const numRegInt = parseInt(numReg, 10);
+                if (numRegInt !== totalLineasFisicas) {
+                    hallazgos.push({ campo: '3.3 Número de Registros (Trailer)', posicion: '27-34', estado: `Declara ${numRegInt}, pero el archivo físico tiene ${totalLineasFisicas} líneas`, requerimiento: `Debe coincidir con el total físico: ${totalLineasFisicas} (valor correcto: ${String(totalLineasFisicas).padStart(8, '0')})`, dictamen: 'ERROR BLOQUEANTE' });
+                }
+            }
+            const sumNov = extraer(linea, 34, 42);
+            if (!esNumericoPuro(sumNov)) {
+                hallazgos.push({ campo: '3.4 Sumatoria Novedades', posicion: '35-42', estado: `"${sumNov}"`, requerimiento: '8 dígitos numéricos', dictamen: 'ERROR BLOQUEANTE' });
+            } else {
+                const sumNovInt = parseInt(sumNov, 10);
+                if (sumNovInt !== sumatoriaReal) {
+                    hallazgos.push({ campo: '3.4 Sumatoria Novedades', posicion: '35-42', estado: `Declara ${sumNovInt}, la suma real de novedades es ${sumatoriaReal}`, requerimiento: `Suma de campo 2.15 de todos los registros: ${String(sumatoriaReal).padStart(8, '0')}`, dictamen: 'ERROR BLOQUEANTE' });
+                }
+            }
+            return hallazgos;
+        }
+
+        /* ============================================================
+           VALIDACIÓN DETALLE
+           ============================================================ */
+        function validarDetalle(linea, numLinea, tipoEntrega, tipoCuentaHeader) {
+            const hallazgos = [];
+            const valoresCampo = {};
+
+            if (!linea || linea.length !== 800) {
+                hallazgos.push({ campo: `Longitud Línea ${numLinea}`, posicion: '1-800', estado: `Mide ${linea ? linea.length : 0} caracteres`, requerimiento: 'Exactamente 800 caracteres', dictamen: 'ERROR BLOQUEANTE' });
+                return { hallazgos, valoresCampo, novedad: null };
+            }
+
+            for (const campo of CAMPOS_DETALLE) {
+                const valor = extraer(linea, campo.ini, campo.fin);
+                valoresCampo[campo.id] = valor;
+                const valorTrim = valor.trim();
+
+                if (valor.length !== campo.long) {
+                    hallazgos.push({ campo: `${campo.id} ${campo.nombre} (Línea ${numLinea})`, posicion: `${campo.ini}-${campo.fin}`, estado: `Longitud ${valor.length} (esperada ${campo.long})`, requerimiento: `Longitud fija de ${campo.long} caracteres`, dictamen: 'ERROR BLOQUEANTE' });
+                    continue;
+                }
+
+                if (campo.tipo === 'NUM' && valorTrim !== '' && !esNumericoPuro(valorTrim)) {
+                    if (!esSoloEspacios(valor)) {
+                        hallazgos.push({ campo: `${campo.id} ${campo.nombre} (Línea ${numLinea})`, posicion: `${campo.ini}-${campo.fin}`, estado: `"${valorTrim}" contiene caracteres no numéricos`, requerimiento: 'Campo numérico: solo dígitos 0-9', dictamen: 'ERROR BLOQUEANTE' });
+                        continue;
+                    }
+                }
+                if (campo.tipo === 'ALF' && valorTrim !== '') {
+                    if (/[a-z]/.test(valor)) {
+                        hallazgos.push({ campo: `${campo.id} ${campo.nombre} (Línea ${numLinea})`, posicion: `${campo.ini}-${campo.fin}`, estado: `"${valorTrim}" contiene minúsculas`, requerimiento: 'Todos los datos alfabéticos en MAYÚSCULAS', dictamen: 'OBSERVACIÓN' });
+                    }
+                }
+
+                if (campo.formato === 'FECHA' && valorTrim !== '' && !esSoloCeros(valor) && !esSoloEspacios(valor)) {
+                    if (!esFechaValida(valorTrim)) {
+                        hallazgos.push({ campo: `${campo.id} ${campo.nombre} (Línea ${numLinea})`, posicion: `${campo.ini}-${campo.fin}`, estado: `"${valorTrim}"`, requerimiento: 'Formato AAAAMMDD válido', dictamen: 'ERROR BLOQUEANTE' });
+                    }
+                }
+
+                if (campo.catalogo && valorTrim !== '' && !esSoloEspacios(valor)) {
+                    const cat = CATALOGOS[campo.catalogo];
+                    if (cat && !(valorTrim in cat)) {
+                        if (campo.id === '2.15') {
+                            let catAplicable = CATALOGOS.novedad;
+                            if (tipoEntrega === 'P') catAplicable = CATALOGOS.novedadParcialCRT;
+                            else if (tipoEntrega === 'E') {
+                                catAplicable = { '01': 'Al día', '02': 'Cancelada voluntariamente', '05': 'Pago total' };
+                            }
+                            if (!(valorTrim in catAplicable)) {
+                                hallazgos.push({ campo: `${campo.id} ${campo.nombre} (Línea ${numLinea})`, posicion: `${campo.ini}-${campo.fin}`, estado: `Código "${valorTrim}" no válido para tipo de entrega "${tipoEntrega}"`, requerimiento: `Código válido del Anexo 2.5 para tipo ${tipoEntrega}: ${Object.keys(catAplicable).join(', ')}`, dictamen: 'ERROR BLOQUEANTE' });
+                            }
+                        } else {
+                            hallazgos.push({ campo: `${campo.id} ${campo.nombre} (Línea ${numLinea})`, posicion: `${campo.ini}-${campo.fin}`, estado: `Código "${valorTrim}" no está en el catálogo`, requerimiento: `Valores válidos: ${Object.entries(cat).map(([k, v]) => `${k}=${v}`).join(', ')}`, dictamen: 'ERROR BLOQUEANTE' });
+                        }
+                    }
+                }
+
+                if (campo.dominio && valorTrim !== '' && !esSoloEspacios(valor)) {
+                    const numVal = parseInt(valorTrim, 10);
+                    if (!isNaN(numVal) && !campo.dominio.includes(numVal)) {
+                        hallazgos.push({ campo: `${campo.id} ${campo.nombre} (Línea ${numLinea})`, posicion: `${campo.ini}-${campo.fin}`, estado: `Valor ${numVal}`, requerimiento: `Valores permitidos: ${campo.dominio.join(', ')}`, dictamen: 'ERROR BLOQUEANTE' });
+                    }
+                }
+            }
+
+            /* Validaciones de negocio */
+            const saldoDeuda = valoresCampo['2.33'] || '';
+            if (saldoDeuda && saldoDeuda.includes('-')) {
+                hallazgos.push({ campo: `2.33 Saldo Deuda (Línea ${numLinea})`, posicion: posCampo('2.33'), estado: `Contiene signo negativo: "${saldoDeuda}"`, requerimiento: 'Campo numérico positivo. Si hay saldo a favor, reportar 00000000000', dictamen: 'ERROR BLOQUEANTE' });
+            }
+
+            const saldoMora = valoresCampo['2.36'] || '';
+            if (saldoMora && esNumericoPuro(saldoMora)) {
+                const valMora = parseInt(saldoMora, 10);
+                if (valMora > 0 && valMora <= 10000) {
+                    hallazgos.push({ campo: `2.36 Valor Saldo en Mora (Línea ${numLinea})`, posicion: posCampo('2.36'), estado: `Valor ${valMora} (entre 1 y 10.000)`, requerimiento: 'Solo se reporta si es superior a $10.000. Si es menor o igual, reportar 00000000000', dictamen: 'OBSERVACIÓN' });
+                }
+            }
+
+            const totalCuotas = valoresCampo['2.37'] || '';
+            const cuotasCanceladas = valoresCampo['2.38'] || '';
+            const cuotasMora = valoresCampo['2.39'] || '';
+            if (totalCuotas && cuotasCanceladas && esNumericoPuro(totalCuotas) && esNumericoPuro(cuotasCanceladas)) {
+                const tc = parseInt(totalCuotas, 10);
+                const cc = parseInt(cuotasCanceladas, 10);
+                if (tc > 0 && cc > tc) {
+                    hallazgos.push({ campo: `2.37/2.38 Consistencia Cuotas (Línea ${numLinea})`, posicion: `${posCampo('2.37')}/${posCampo('2.38')}`, estado: `Total cuotas: ${tc}, Canceladas: ${cc}`, requerimiento: 'Cuotas canceladas no puede ser mayor al total de cuotas', dictamen: 'INCONSISTENCIA' });
+                }
+            }
+            if (totalCuotas && cuotasCanceladas && cuotasMora &&
+                esNumericoPuro(totalCuotas) && esNumericoPuro(cuotasCanceladas) && esNumericoPuro(cuotasMora)) {
+                const tc = parseInt(totalCuotas, 10);
+                const cc = parseInt(cuotasCanceladas, 10);
+                const cm = parseInt(cuotasMora, 10);
+                if (tc > 0 && (cc + cm) > tc) {
+                    hallazgos.push({ campo: `2.37/2.38/2.39 Consistencia Cuotas (Línea ${numLinea})`, posicion: `${posCampo('2.37')}/${posCampo('2.38')}/${posCampo('2.39')}`, estado: `Total: ${tc}, Canceladas: ${cc}, En mora: ${cm}. Suma ${cc + cm} > ${tc}`, requerimiento: 'La suma de cuotas canceladas + en mora no puede exceder el total', dictamen: 'INCONSISTENCIA' });
+                }
+            }
+
+            const correo = valoresCampo['2.61'] || '';
+            if (correo && !esSoloEspacios(correo)) {
+                const correoTrim = correo.trim();
+                if (correoTrim !== '' && !correoTrim.includes('@')) {
+                    hallazgos.push({ campo: `2.61 Correo Electrónico (Línea ${numLinea})`, posicion: posCampo('2.61'), estado: `"${correoTrim}" no contiene "@"`, requerimiento: 'Correo válido con "@" y dominio, o 60 espacios en blanco', dictamen: 'OBSERVACIÓN' });
+                }
+            }
+
+            ['2.51', '2.56', '2.62'].forEach(id => {
+                const tel = valoresCampo[id] || '';
+                if (tel && !esSoloCeros(tel) && !esSoloEspacios(tel)) {
+                    if (tel.startsWith(' ')) {
+                        hallazgos.push({ campo: `${id} Teléfono (Línea ${numLinea})`, posicion: posCampo(id), estado: `"${tel}" inicia con espacios`, requerimiento: 'Numérico justificado a la derecha con ceros a la izquierda', dictamen: 'OBSERVACIÓN' });
+                    }
+                }
+            });
+
+            const fechaPago = valoresCampo['2.43'] || '';
+            if (fechaPago && esSoloEspacios(fechaPago)) {
+                hallazgos.push({ campo: `2.43 Fecha de Pago (Línea ${numLinea})`, posicion: posCampo('2.43'), estado: '8 espacios en blanco', requerimiento: 'Fecha AAAAMMDD o ceros (00000000) si no hay pago, nunca espacios', dictamen: 'OBSERVACIÓN' });
+            }
+
+            ['2.67', '2.68'].forEach(id => {
+                const val = valoresCampo[id] || '';
+                if (val && esSoloEspacios(val)) {
+                    hallazgos.push({ campo: `${id} (Línea ${numLinea})`, posicion: posCampo(id), estado: '8 espacios en blanco', requerimiento: 'Numérico: usar 00000000 si no hay dato, nunca espacios', dictamen: 'OBSERVACIÓN' });
+                }
+            });
+
+            const novedad = valoresCampo['2.15'] || '';
+            if (novedad && NOVEDADES_CIERRE.includes(novedad.trim())) {
+                ['2.32', '2.33', '2.34', '2.35', '2.36'].forEach(id => {
+                    const val = valoresCampo[id] || '';
+                    if (val && esNumericoPuro(val)) {
+                        const v = parseInt(val, 10);
+                        if (v > 0) {
+                            hallazgos.push({ campo: `${id} con novedad de cierre ${novedad} (Línea ${numLinea})`, posicion: posCampo(id), estado: `Valor ${v} distinto de cero`, requerimiento: `Con novedad de cierre ${novedad}, los saldos deben estar en cero`, dictamen: 'INCONSISTENCIA' });
+                        }
+                    }
+                });
+            }
+
+            const sitCartera = valoresCampo['2.16'] || '';
+            const fechaSitCartera = valoresCampo['2.17'] || '';
+            const fechaApertura = valoresCampo['2.6'] || '';
+            if (sitCartera && ['1', '2'].includes(sitCartera.trim()) && fechaSitCartera && fechaApertura) {
+                if (fechaSitCartera.trim() === fechaApertura.trim()) {
+                    hallazgos.push({ campo: `2.16/2.17 Situación Cartera (Línea ${numLinea})`, posicion: `${posCampo('2.16')}/${posCampo('2.17')}`, estado: `Situación ${sitCartera} con fecha igual a fecha de apertura`, requerimiento: 'Si situación cartera es 1 o 2, la fecha debe ser distinta a la fecha de apertura', dictamen: 'INCONSISTENCIA' });
+                }
+            }
+
+            const tipoObl = valoresCampo['2.9'] || '';
+            const subsidio = valoresCampo['2.10'] || '';
+            const fechaSubsidio = valoresCampo['2.11'] || '';
+            if (tipoObl && subsidio && subsidio.trim() === '1') {
+                if (tipoObl.trim() !== '3') {
+                    hallazgos.push({ campo: `2.9/2.10 Subsidio (Línea ${numLinea})`, posicion: `${posCampo('2.9')}/${posCampo('2.10')}`, estado: `Subsidio=1 pero tipo obligación=${tipoObl}`, requerimiento: 'Subsidio hipotecario solo aplica para tipo obligación 3 (Hipotecario)', dictamen: 'INCONSISTENCIA' });
+                }
+                if (fechaSubsidio && (esSoloCeros(fechaSubsidio) || esSoloEspacios(fechaSubsidio))) {
+                    hallazgos.push({ campo: `2.10/2.11 Fecha Subsidio (Línea ${numLinea})`, posicion: `${posCampo('2.10')}/${posCampo('2.11')}`, estado: 'Subsidio=1 pero fecha de subsidio en ceros/espacios', requerimiento: 'Si hay subsidio, debe reportar fecha de subsidio válida', dictamen: 'INCONSISTENCIA' });
+                }
+            }
+
+            if (tipoCuentaHeader !== '28') {
+                const claseTarjeta = valoresCampo['2.24'] || '';
+                const franquicia = valoresCampo['2.25'] || '';
+                if (claseTarjeta && claseTarjeta.trim() !== '0') {
+                    hallazgos.push({ campo: `2.24 Clase Tarjeta (Línea ${numLinea})`, posicion: posCampo('2.24'), estado: `Valor "${claseTarjeta}" en tipo de cuenta no-CRT`, requerimiento: 'Para carteras distintas de CRT, reportar 0', dictamen: 'OBSERVACIÓN' });
+                }
+                if (franquicia && franquicia.trim() !== '0') {
+                    hallazgos.push({ campo: `2.25 Franquicia (Línea ${numLinea})`, posicion: posCampo('2.25'), estado: `Valor "${franquicia}" en tipo de cuenta no-CRT`, requerimiento: 'Para carteras distintas de CRT, reportar 0', dictamen: 'OBSERVACIÓN' });
+                }
+            }
+
+            const tipoGarantia = valoresCampo['2.28'] || '';
+            const detalleGarantia = valoresCampo['2.65'] || '';
+            if (tipoGarantia && detalleGarantia) {
+                const tg = tipoGarantia.trim();
+                const dg = detalleGarantia.trim();
+                if (tg === '0' && dg !== '0' && dg !== '') {
+                    hallazgos.push({ campo: `2.28/2.65 Garantía (Línea ${numLinea})`, posicion: `${posCampo('2.28')}/${posCampo('2.65')}`, estado: `Tipo garantía=0 pero detalle="${dg}"`, requerimiento: 'Si tipo garantía es 0 (no reportado), detalle debe ser 0', dictamen: 'INCONSISTENCIA' });
+                }
+                if (tg !== '0' && tg !== '' && (dg === '' || esSoloEspacios(detalleGarantia))) {
+                    hallazgos.push({ campo: `2.28/2.65 Garantía (Línea ${numLinea})`, posicion: `${posCampo('2.28')}/${posCampo('2.65')}`, estado: `Tipo garantía="${tg}" pero detalle en blanco`, requerimiento: 'Si hay tipo de garantía, el detalle debe diligenciarse', dictamen: 'OBSERVACIÓN' });
+                }
+            }
+
+            const adjetivo = valoresCampo['2.22'] || '';
+            const fechaAdjetivo = valoresCampo['2.23'] || '';
+            if (adjetivo && fechaAdjetivo) {
+                const adj = adjetivo.trim();
+                if (adj === '0' && fechaAdjetivo.trim() !== '' && !esSoloCeros(fechaAdjetivo) && !esSoloEspacios(fechaAdjetivo)) {
+                    hallazgos.push({ campo: `2.22/2.23 Adjetivo (Línea ${numLinea})`, posicion: `${posCampo('2.22')}/${posCampo('2.23')}`, estado: `Adjetivo=0 pero fecha adjetivo="${fechaAdjetivo.trim()}"`, requerimiento: 'Si no hay adjetivo (0), la fecha debe venir en ceros', dictamen: 'INCONSISTENCIA' });
+                }
+                if (adj !== '0' && adj !== '' && (esSoloCeros(fechaAdjetivo) || esSoloEspacios(fechaAdjetivo))) {
+                    hallazgos.push({ campo: `2.22/2.23 Adjetivo (Línea ${numLinea})`, posicion: `${posCampo('2.22')}/${posCampo('2.23')}`, estado: `Adjetivo="${adj}" pero fecha en ceros/espacios`, requerimiento: 'Si hay adjetivo, debe reportar fecha del adjetivo', dictamen: 'INCONSISTENCIA' });
+                }
+            }
+
+            const usoInterno = valoresCampo['2.66'] || '';
+            if (usoInterno && usoInterno.trim() !== '0') {
+                hallazgos.push({ campo: `2.66 Uso Interno Experian (Línea ${numLinea})`, posicion: posCampo('2.66'), estado: `Valor "${usoInterno}"`, requerimiento: 'Siempre enviar cero (0)', dictamen: 'OBSERVACIÓN' });
+            }
+
+            const nombre = valoresCampo['2.4'] || '';
+            if (nombre && !esSoloEspacios(nombre) && tieneCaracteresEspeciales(nombre)) {
+                hallazgos.push({ campo: `2.4 Nombre Completo (Línea ${numLinea})`, posicion: posCampo('2.4'), estado: `"${nombre.trim()}" contiene caracteres especiales`, requerimiento: 'No se permiten *, -, >, <, #, $, &, etc.', dictamen: 'OBSERVACIÓN' });
+            }
+
+            return { hallazgos, valoresCampo, novedad };
+        }
+
+        /* ============================================================
+           PROCESAMIENTO PRINCIPAL
+           ============================================================ */
+        function procesarArchivo(file) {
+            resultadosGlobales = [];
+            metadataArchivo = { nombre: file.name, tamano: file.size, fecha: new Date().toLocaleString('es-CO') };
+
+            const progressContainer = document.getElementById('progressContainer');
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            const errorBox = document.getElementById('errorBox');
+            const errorMsg = document.getElementById('errorMsg');
+
+            progressContainer.style.display = 'block';
+            errorBox.classList.add('hidden');
+            progressFill.style.width = '0%';
+            progressText.textContent = 'Leyendo archivo...';
+
+            try {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    try {
+                        const texto = e.target.result;
+                        const lineasRaw = texto.split(/\r?\n/);
+                        while (lineasRaw.length > 0 && lineasRaw[lineasRaw.length - 1].trim() === '') {
+                            lineasRaw.pop();
+                        }
+
+                        if (lineasRaw.length < 2) {
+                            throw new Error(`El archivo tiene solo ${lineasRaw.length} líneas. Se requieren mínimo 3 (Header + registros + Trailer).`);
+                        }
+
+                        progressText.textContent = `Archivo leído: ${lineasRaw.length} líneas`;
+                        progressFill.style.width = '10%';
+
+                        let tipoEntregaEsperado = null;
+                        const matchNombre = file.name.match(/^(\d{6})\.(\d{8})\.([TFEPA])$/i);
+                        if (matchNombre) {
+                            tipoEntregaEsperado = matchNombre[3].toUpperCase();
+                            metadataArchivo.codigoSuscriptor = matchNombre[1];
+                            metadataArchivo.fechaArchivo = matchNombre[2];
+                            metadataArchivo.tipoEntregaNombre = tipoEntregaEsperado;
+                        } else {
+                            resultadosGlobales.push({ campo: 'Nombre del archivo', posicion: 'N/A', estado: `"${file.name}"`, requerimiento: 'Formato: SSSSSS.AAAAMMDD.T (ej: 284941.20260930.T)', dictamen: 'OBSERVACIÓN' });
+                        }
+
+                        progressText.textContent = 'Validando header...';
+                        const headerVal = validarHeader(lineasRaw[0], tipoEntregaEsperado);
+                        resultadosGlobales.push(...headerVal.hallazgos);
+                        const tipoEntrega = headerVal.tipoEntrega || tipoEntregaEsperado || 'T';
+                        const tipoCuenta = headerVal.tipoCuenta || '';
+
+                        progressFill.style.width = '20%';
+                        progressText.textContent = 'Buscando trailer...';
+
+                        let trailerIdx = lineasRaw.length - 1;
+                        for (let i = lineasRaw.length - 1; i >= 0; i--) {
+                            if (lineasRaw[i] && lineasRaw[i].startsWith('ZZZZZZZZZZZZZZZZZZ')) {
+                                trailerIdx = i;
+                                break;
+                            }
+                        }
+
+                        const totalLineasFisicas = lineasRaw.length;
+                        const registrosDetalle = [];
+                        let sumatoriaNovedades = 0;
+
+                        progressText.textContent = `Validando ${trailerIdx - 1} registros de detalle...`;
+
+                        for (let i = 1; i < trailerIdx; i++) {
+                            const linea = lineasRaw[i];
+                            if (!linea || linea.trim() === '') continue;
+
+                            const resultado = validarDetalle(linea, i + 1, tipoEntrega, tipoCuenta);
+                            resultadosGlobales.push(...resultado.hallazgos);
+
+                            const valores = resultado.valoresCampo || {};
+                            registrosDetalle.push({ linea: i + 1, valores: valores, novedad: resultado.novedad });
+
+                            const nov = (valores['2.15'] || '').trim();
+                            if (esNumericoPuro(nov)) sumatoriaNovedades += parseInt(nov, 10);
+
+                            if (i % 100 === 0) {
+                                const pct = 20 + Math.round(((i - 1) / Math.max(trailerIdx - 1, 1)) * 70);
+                                progressFill.style.width = pct + '%';
+                                progressText.textContent = `Línea ${i} de ${trailerIdx - 1} (${Math.round((i / Math.max(trailerIdx - 1, 1)) * 100)}%)`;
+                            }
+                        }
+
+                        progressFill.style.width = '90%';
+                        progressText.textContent = 'Validando trailer...';
+
+                        const trailerLinea = lineasRaw[trailerIdx];
+                        const trailerHallazgos = validarTrailer(trailerLinea, totalLineasFisicas, sumatoriaNovedades);
+                        resultadosGlobales.push(...trailerHallazgos);
+
+                        /* Validaciones globales */
+                        if (tipoEntrega === 'P' && tipoCuenta !== '28') {
+                            resultadosGlobales.push({ campo: '1.7 / Tipo de Cuenta', posicion: `${POS_HEADER['1.7 Tipo de Entrega']}/${POS_HEADER['1.3 Tipo Cuenta']}`, estado: `Tipo entrega P con tipo de cuenta ${tipoCuenta}`, requerimiento: 'El tipo de entrega P solo aplica para cartera CRT (tipo cuenta 28)', dictamen: 'ERROR BLOQUEANTE' });
+                        }
+
+                        if (tipoEntrega === 'E') {
+                            const novedadesInvalidas = registrosDetalle.filter(r => {
+                                const nov = (r.valores['2.15'] || '').trim();
+                                return !['01', '02', '05'].includes(nov);
+                            });
+                            if (novedadesInvalidas.length > 0) {
+                                resultadosGlobales.push({ campo: 'Tipo Entrega E - Novedades', posicion: posCampo('2.15'), estado: `${novedadesInvalidas.length} registros con novedades distintas de 01, 02, 05`, requerimiento: 'Tipo E solo acepta novedades 01, 02, 05 (movimientos, sin aperturas)', dictamen: 'ERROR BLOQUEANTE' });
+                            }
+                        }
+
+                        if (tipoEntrega === 'A') {
+                            const noAperturas = registrosDetalle.filter(r => {
+                                const nov = (r.valores['2.15'] || '').trim();
+                                return nov !== '01';
+                            });
+                            if (noAperturas.length > 0) {
+                                resultadosGlobales.push({ campo: 'Tipo Entrega A - Novedades', posicion: posCampo('2.15'), estado: `${noAperturas.length} registros con novedades distintas de 01`, requerimiento: 'Tipo A solo recibe aperturas de cuentas (novedad 01)', dictamen: 'ERROR BLOQUEANTE' });
+                            }
+                        }
+
+                        resultadosGlobales.push({ campo: 'Longitud total de líneas', posicion: '—', estado: `${totalLineasFisicas} líneas procesadas`, requerimiento: 'Estructura: Header + N registros + Trailer', dictamen: 'CORREGIDO / OK' });
+
+                        progressFill.style.width = '100%';
+                        progressText.textContent = '100% · Completado';
+
+                        metadataArchivo.totalLineas = totalLineasFisicas;
+                        metadataArchivo.totalRegistros = registrosDetalle.length;
+                        metadataArchivo.sumatoriaNovedades = sumatoriaNovedades;
+                        metadataArchivo.tipoEntrega = tipoEntrega;
+                        metadataArchivo.tipoCuenta = tipoCuenta;
+                        metadataArchivo.codSuscriptor = headerVal.codSuscriptor;
+                        metadataArchivo.fechaCorte = headerVal.fechaCorte;
+
+                        setTimeout(() => {
+                            progressContainer.style.display = 'none';
+                            renderResumen();
+                            renderTabla(filtroActual);
+                            renderInstrucciones();
+                            document.getElementById('resultsPanel').classList.remove('hidden');
+                            document.getElementById('tablePanel').classList.remove('hidden');
+                            const fileInfo = document.getElementById('fileInfo');
+                            fileInfo.classList.remove('hidden');
+                            fileInfo.innerHTML = `
+            <strong>Archivo:</strong> ${metadataArchivo.nombre} ·
+            <strong>Tamaño:</strong> ${(metadataArchivo.tamano / 1024).toFixed(1)} KB ·
+            <strong>Líneas:</strong> ${metadataArchivo.totalLineas} ·
+            <strong>Registros:</strong> ${metadataArchivo.totalRegistros} ·
+            <strong>Tipo entrega:</strong> ${metadataArchivo.tipoEntrega} ·
+            <strong>Suscriptor:</strong> ${metadataArchivo.codSuscriptor || '-'}
+          `;
+                        }, 300);
+
+                    } catch (err) {
+                        console.error('Error en procesamiento:', err);
+                        errorBox.classList.remove('hidden');
+                        errorMsg.innerHTML = `<pre>${err.message}\n\n${err.stack || ''}</pre>`;
+                        progressContainer.style.display = 'none';
+                    }
+                };
+                reader.onerror = function () {
+                    errorBox.classList.remove('hidden');
+                    errorMsg.innerHTML = `<pre>Error al leer el archivo: ${reader.error}</pre>`;
+                    progressContainer.style.display = 'none';
+                };
+                reader.readAsText(file, 'UTF-8');
+            } catch (err) {
+                console.error('Error inicial:', err);
+                errorBox.classList.remove('hidden');
+                errorMsg.innerHTML = `<pre>${err.message}</pre>`;
+                progressContainer.style.display = 'none';
+            }
+        }
+
+        /* ============================================================
+           RENDER
+           ============================================================ */
+        function renderResumen() {
+            const total = resultadosGlobales.length;
+            const errores = resultadosGlobales.filter(r => r.dictamen === 'ERROR BLOQUEANTE').length;
+            const observaciones = resultadosGlobales.filter(r => r.dictamen === 'OBSERVACIÓN').length;
+            const inconsistencias = resultadosGlobales.filter(r => r.dictamen === 'INCONSISTENCIA').length;
+            const ok = resultadosGlobales.filter(r => r.dictamen === 'CORREGIDO / OK').length;
+
+            document.getElementById('summary').innerHTML = `
+    <div class="stat total"><div class="stat-label">Hallazgos totales</div><div class="stat-value">${total}</div></div>
+    <div class="stat error"><div class="stat-label">Errores bloqueantes</div><div class="stat-value">${errores}</div></div>
+    <div class="stat warn"><div class="stat-label">Observaciones</div><div class="stat-value">${observaciones}</div></div>
+    <div class="stat info"><div class="stat-label">Inconsistencias</div><div class="stat-value">${inconsistencias}</div></div>
+    <div class="stat ok"><div class="stat-label">OK / Corregidos</div><div class="stat-value">${ok}</div></div>
+  `;
+        }
+
+        /* Normaliza el nombre del campo para agrupación (quita el número de línea) */
+        function normalizarCampo(campo) {
+            return campo.replace(/\s*\(Línea\s+\d+\)/g, '').trim();
+        }
+
+        function renderTabla(filtro) {
+            filtroActual = filtro;
+            const tbody = document.getElementById('resultsBody');
+            let datos = filtro === 'all' ? resultadosGlobales : resultadosGlobales.filter(r => r.dictamen === filtro);
+
+            if (vistaAgrupada) {
+                renderTablaAgrupada(datos);
+                return;
+            }
+
+            tbody.innerHTML = datos.map(r => {
+                const claseDictamen = r.dictamen.toLowerCase().replace(/\s*\//g, '').replace(/\s+/g, '-');
+                return `
+      <tr>
+        <td class="campo-cell">${r.campo}</td>
+        <td><span class="pos-cell">${r.posicion || '—'}</span></td>
+        <td class="estado-cell">${r.estado}</td>
+        <td class="req-cell">${r.requerimiento}</td>
+        <td><span class="dictamen ${claseDictamen}">${r.dictamen}</span></td>
+      </tr>
+    `;
+            }).join('');
+        }
+
+        function renderTablaAgrupada(datos) {
+            const tbody = document.getElementById('resultsBody');
+            const grupos = {};
+
+            datos.forEach(r => {
+                const campoNorm = normalizarCampo(r.campo);
+                const key = `${campoNorm}|||${r.dictamen}`;
+                if (!grupos[key]) {
+                    grupos[key] = {
+                        campo: campoNorm,
+                        posicion: r.posicion,
+                        estado: r.estado,
+                        requerimiento: r.requerimiento,
+                        dictamen: r.dictamen,
+                        count: 0,
+                        lineas: []
+                    };
+                }
+                grupos[key].count++;
+                /* Extraer número de línea si existe */
+                const matchLinea = r.campo.match(/\(Línea\s+(\d+)\)/);
+                if (matchLinea) grupos[key].lineas.push(matchLinea[1]);
+                /* Si el estado varía entre registros, mostrar solo el primero como ejemplo */
+            });
+
+            const filas = Object.values(grupos).sort((a, b) => {
+                const orden = { 'ERROR BLOQUEANTE': 0, 'INCONSISTENCIA': 1, 'OBSERVACIÓN': 2, 'CORREGIDO / OK': 3 };
+                return (orden[a.dictamen] || 9) - (orden[b.dictamen] || 9);
+            });
+
+            tbody.innerHTML = filas.map(g => {
+                const claseDictamen = g.dictamen.toLowerCase().replace(/\s*\//g, '').replace(/\s+/g, '-');
+                const estadoMostrar = g.count > 1
+                    ? `${g.estado} <span style="color:#7f8c8d;font-size:11px;">(mismo patrón en ${g.count} registros)</span>`
+                    : g.estado;
+                const lineasInfo = g.lineas.length > 0 && g.lineas.length <= 20
+                    ? `<br><span style="font-size:11px;color:#7f8c8d;">Líneas: ${g.lineas.join(', ')}</span>`
+                    : g.lineas.length > 20
+                        ? `<br><span style="font-size:11px;color:#7f8c8d;">Líneas: ${g.lineas.slice(0, 10).join(', ')}... y ${g.lineas.length - 10} más</span>`
+                        : '';
+                return `
+      <tr>
+        <td class="campo-cell">${g.campo} <span class="count-badge">${g.count}</span>${lineasInfo}</td>
+        <td><span class="pos-cell">${g.posicion || '—'}</span></td>
+        <td class="estado-cell">${estadoMostrar}</td>
+        <td class="req-cell">${g.requerimiento}</td>
+        <td><span class="dictamen ${claseDictamen}">${g.dictamen}</span></td>
+      </tr>
+    `;
+            }).join('');
+        }
+
+        function renderInstrucciones() {
+            const errores = resultadosGlobales.filter(r => r.dictamen === 'ERROR BLOQUEANTE');
+            const observaciones = resultadosGlobales.filter(r => r.dictamen === 'OBSERVACIÓN');
+            const inconsistencias = resultadosGlobales.filter(r => r.dictamen === 'INCONSISTENCIA');
+
+            let html = '<h4>PLAN DE CORRECCIÓN PRIORITARIO</h4><ol>';
+            if (errores.length > 0) {
+                html += `<li><strong>Corregir ${errores.length} errores bloqueantes</strong> antes de reenviar el archivo. Sin esto, DataCrédito rechazará el archivo de inmediato.</li>`;
+            }
+            if (inconsistencias.length > 0) {
+                html += `<li><strong>Revisar ${inconsistencias.length} inconsistencias de negocio</strong>: validan la coherencia entre campos (cuotas vs saldos, fechas, novedad vs estado). Pueden generar rechazo parcial.</li>`;
+            }
+            if (observaciones.length > 0) {
+                html += `<li><strong>Atender ${observaciones.length} observaciones</strong>: no bloquean la carga pero afectan la calidad del reporte y pueden generar notas en los resultados de actualización.</li>`;
+            }
+            html += '</ol>';
+            document.getElementById('instructions').innerHTML = html;
+        }
+
+        /* ============================================================
+           EXPORTACIÓN
+           ============================================================ */
+        function descargar(nombre, contenido, mime) {
+            const blob = new Blob([contenido], { type: mime });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = nombre;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function generarMd() {
+            const fecha = new Date().toLocaleString('es-CO');
+            let md = `# INFORME TÉCNICO DE AUDITORÍA - ARCHIVO PLANO DATACRÉDITO\n\n`;
+            md += `**Empresa:** ${metadataArchivo.codSuscriptor || 'N/A'} · `;
+            md += `**Archivo:** ${metadataArchivo.nombre} · `;
+            md += `**Fecha auditoría:** ${fecha}\n\n`;
+            md += `**Total líneas:** ${metadataArchivo.totalLineas || '-'} · `;
+            md += `**Registros:** ${metadataArchivo.totalRegistros || '-'} · `;
+            md += `**Tipo entrega:** ${metadataArchivo.tipoEntrega || '-'}\n\n`;
+
+            const errores = resultadosGlobales.filter(r => r.dictamen === 'ERROR BLOQUEANTE').length;
+            const obs = resultadosGlobales.filter(r => r.dictamen === 'OBSERVACIÓN').length;
+            const inc = resultadosGlobales.filter(r => r.dictamen === 'INCONSISTENCIA').length;
+            md += `**Resumen:** ${resultadosGlobales.length} hallazgos · ${errores} errores bloqueantes · ${obs} observaciones · ${inc} inconsistencias\n\n`;
+
+            md += `## Detalle de hallazgos\n\n`;
+            md += `| Aspecto / Campo | Posición | Estado en el archivo | Requerimiento Manual v2.2 | Dictamen |\n`;
+            md += `| --- | --- | --- | --- | --- |\n`;
+            resultadosGlobales.forEach(r => {
+                const campo = r.campo.replace(/\|/g, '\\|');
+                const pos = (r.posicion || '—').replace(/\|/g, '\\|');
+                const estado = r.estado.replace(/\|/g, '\\|').replace(/\n/g, ' ');
+                const req = r.requerimiento.replace(/\|/g, '\\|').replace(/\n/g, ' ');
+                md += `| ${campo} | ${pos} | ${estado} | ${req} | ${r.dictamen} |\n`;
+            });
+
+            md += `\n## Plan de corrección\n\n`;
+            const erroresArr = resultadosGlobales.filter(r => r.dictamen === 'ERROR BLOQUEANTE');
+            if (erroresArr.length > 0) {
+                md += `### Errores bloqueantes (corregir antes de reenviar)\n\n`;
+                erroresArr.forEach(r => md += `- **${r.campo}** (pos. ${r.posicion || '—'}): ${r.requerimiento}\n`);
+            }
+            return md;
+        }
+
+        function generarCsv() {
+            let csv = 'Aspecto / Campo;Posición;Estado en el archivo;Requerimiento Manual v2.2;Dictamen\n';
+            resultadosGlobales.forEach(r => {
+                const escape = s => `"${(s || '').replace(/"/g, '""').replace(/\n/g, ' ')}"`;
+                csv += `${escape(r.campo)};${escape(r.posicion || '')};${escape(r.estado)};${escape(r.requerimiento)};${escape(r.dictamen)}\n`;
+            });
+            return csv;
+        }
+
+        function generarHtml() {
+            const fecha = new Date().toLocaleString('es-CO');
+            let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Informe Auditoría</title>
+<style>
+body{font-family:Arial,sans-serif;padding:20px;max-width:1400px;margin:0 auto;}
+h1{color:#1e3c72;}table{width:100%;border-collapse:collapse;margin-top:20px;font-size:13px;}
+th{background:#2a5298;color:white;padding:10px;text-align:left;}
+td{padding:8px 10px;border-bottom:1px solid #e5e8eb;vertical-align:top;}
+.dictamen{padding:3px 8px;border-radius:10px;font-size:11px;font-weight:bold;}
+.error{background:#fdecea;color:#c0392b;}
+.obs{background:#fef5e7;color:#d68910;}
+.inc{background:#eaf4fc;color:#2874a6;}
+.ok{background:#e8f8ef;color:#1e8449;}
+.pos{font-family:monospace;background:#f0f4ff;color:#2a5298;padding:2px 6px;border-radius:4px;font-size:11px;}
+</style></head><body>`;
+            html += `<h1>Informe Técnico de Auditoría</h1>`;
+            html += `<p><strong>Archivo:</strong> ${metadataArchivo.nombre} · <strong>Fecha:</strong> ${fecha}</p>`;
+            html += `<table><thead><tr><th>Aspecto / Campo</th><th>Posición</th><th>Estado</th><th>Requerimiento</th><th>Dictamen</th></tr></thead><tbody>`;
+            resultadosGlobales.forEach(r => {
+                let clase = 'ok';
+                if (r.dictamen.includes('ERROR')) clase = 'error';
+                else if (r.dictamen.includes('OBSERVACIÓN')) clase = 'obs';
+                else if (r.dictamen.includes('INCONSISTENCIA')) clase = 'inc';
+                html += `<tr><td>${r.campo}</td><td><span class="pos">${r.posicion || '—'}</span></td><td>${r.estado}</td><td>${r.requerimiento}</td><td><span class="dictamen ${clase}">${r.dictamen}</span></td></tr>`;
+            });
+            html += `</tbody></table></body></html>`;
+            return html;
+        }
+
+        /* ============================================================
+           EVENTOS
+           ============================================================ */
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+
+        uploadZone.addEventListener('dragover', e => {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        });
+        uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+        uploadZone.addEventListener('drop', e => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            if (e.dataTransfer.files.length > 0) {
+                procesarArchivo(e.dataTransfer.files[0]);
+            }
+        });
+        fileInput.addEventListener('change', e => {
+            if (e.target.files.length > 0) procesarArchivo(e.target.files[0]);
+        });
+
+        document.getElementById('btnDownloadMd').addEventListener('click', () => {
+            const nombreBase = (metadataArchivo.nombre || 'archivo').replace('.txt', '');
+            descargar(`INFORME_AUDITORIA_${nombreBase}.md`, generarMd(), 'text/markdown;charset=utf-8');
+        });
+        document.getElementById('btnDownloadCsv').addEventListener('click', () => {
+            const nombreBase = (metadataArchivo.nombre || 'archivo').replace('.txt', '');
+            descargar(`INFORME_AUDITORIA_${nombreBase}.csv`, generarCsv(), 'text/csv;charset=utf-8');
+        });
+        document.getElementById('btnDownloadHtml').addEventListener('click', () => {
+            const nombreBase = (metadataArchivo.nombre || 'archivo').replace('.txt', '');
+            descargar(`INFORME_AUDITORIA_${nombreBase}.html`, generarHtml(), 'text/html;charset=utf-8');
+        });
+        document.getElementById('btnReset').addEventListener('click', () => {
+            resultadosGlobales = [];
+            metadataArchivo = {};
+            vistaAgrupada = false;
+            filtroActual = 'all';
+            document.getElementById('btnGroupView').classList.remove('active');
+            document.getElementById('resultsPanel').classList.add('hidden');
+            document.getElementById('tablePanel').classList.add('hidden');
+            document.getElementById('fileInfo').classList.add('hidden');
+            document.getElementById('errorBox').classList.add('hidden');
+            document.getElementById('progressContainer').style.display = 'none';
+            fileInput.value = '';
+        });
+
+        document.getElementById('filters').addEventListener('click', e => {
+            if (e.target.classList.contains('filter-btn')) {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                renderTabla(e.target.dataset.filter);
+            }
+            if (e.target.id === 'btnGroupView') {
+                vistaAgrupada = !vistaAgrupada;
+                e.target.classList.toggle('active', vistaAgrupada);
+                e.target.textContent = vistaAgrupada ? '📋 Vista detallada' : '📊 Vista agrupada';
+                renderTabla(filtroActual);
+            }
+        });
+    </script>
+</body>
+
+</html>
